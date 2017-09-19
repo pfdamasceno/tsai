@@ -13,7 +13,7 @@ from hoomd import deprecated
 
 hoomd.context.initialize()
 
-Sc_N = 100
+Sc_N = 400
 ## number of Zn atoms is 6*Sc_N
 Zn_N = 6*Sc_N
 ## total number of atoms
@@ -21,9 +21,6 @@ tot_N = Sc_N + Zn_N
 
 ## number density
 number_density = 0.03
-
-## temperature
-T = 0.25
 
 ## Parameters acquired manually from doi:10.1038/nmat2044
 ## Zn Zn params
@@ -53,12 +50,12 @@ ScSc_d = dict(c1   = 70.907,
               k    = 2.86125,
               phi  = -6.87912)
 
-timeSteps = 50e6
+timeSteps = 100e6
 
 filename = "ZnSc_QC"
 init_file = None
-restart_period = 1e3
-dump_period = 10
+restart_period = 1e5
+dump_period = 1e4
 
 # OPP defined as in doi: 10.1103/PhysRevB.85.092102
 def OPP(r, rmin, rmax, c1, c2, eta1, eta2, k, phi):
@@ -126,16 +123,16 @@ table.pair_coeff.set('Sc', 'Sc', func = OPP, rmin = ScSc_rmin, rmax = ScSc_rcut,
 
 # Start logging
 # 1. set up the gsd restart file
-gsd_restart = hoomd.dump.gsd(filename = filename + '_restart.gsd', group = hoomd.group.all(), truncate = True, period = restart_period)
+gsd_restart = hoomd.dump.gsd(filename = 'output/' + filename + '_restart.gsd', group = hoomd.group.all(), truncate = True, period = restart_period)
 # 2. set up the pos dump file
-pos = deprecated.dump.pos(filename = filename+'.pos', period = dump_period)
+pos = deprecated.dump.pos(filename = 'output/' + filename+'.pos', period = dump_period)
 # 3. set up the gsd dump file
-gsd = hoomd.dump.gsd(filename = filename+'.gsd', group = hoomd.group.all(), period = dump_period)
+gsd = hoomd.dump.gsd(filename = 'output/' + filename+'.gsd', group = hoomd.group.all(), period = dump_period)
 # 4. set up the log file
-logger = hoomd.analyze.log(filename = filename + ".log", period = int(dump_period/10),
-quantities = ['time','potential_energy','pressure'])
+logger = hoomd.analyze.log(filename = 'output/' + filename + ".log", period = int(dump_period/10),
+quantities = ['time','potential_energy','pressure','temperature'])
 
 # Integrate at constant temperature
-nvt = md.integrate.nvt(group = hoomd.group.all(), tau = 1.0, kT = T)
-md.integrate.mode_standard(dt = 0.01)
+nvt = md.integrate.nvt(group = hoomd.group.all(), tau = 1.0, kT=hoomd.variant.linear_interp([(0, 2.0), (timeSteps, 0.01)]))
+md.integrate.mode_standard(dt = 0.005)
 hoomd.run(timeSteps + 1)
