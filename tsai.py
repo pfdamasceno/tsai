@@ -13,7 +13,7 @@ from hoomd import deprecated
 
 hoomd.context.initialize()
 
-Sc_N = 400
+Sc_N = 120
 ## number of Zn atoms is 6*Sc_N
 Zn_N = 6*Sc_N
 ## total number of atoms
@@ -54,9 +54,9 @@ ScSc_d = dict(c1   = 70.907,
 filename = "ZnSc_QC"
 # init_file = "input/Zn6Sc_2x2x2.gsd"
 init_file = None
-timeSteps = 100e6
+timeSteps = 50e6
 restart_period = 1e5
-dump_period = 1e4
+dump_period = 1e5
 therm_steps = 1e6
 
 # OPP defined as in doi: 10.1103/PhysRevB.85.092102
