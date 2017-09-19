@@ -50,13 +50,14 @@ ScSc_d = dict(c1   = 70.907,
               k    = 2.86125,
               phi  = -6.87912)
 
-timeSteps = 100e6
 
 filename = "ZnSc_QC"
-init_file = "input/Zn6Sc_2x2x2.gsd"
+# init_file = "input/Zn6Sc_2x2x2.gsd"
+init_file = None
+timeSteps = 10e6
 restart_period = 1e5
 dump_period = 1e4
-therm_steps = 5e6
+therm_steps = 1e6
 
 # OPP defined as in doi: 10.1103/PhysRevB.85.092102
 def OPP(r, rmin, rmax, c1, c2, eta1, eta2, k, phi):
@@ -80,7 +81,7 @@ def determineRange(max_num_extrema, d):
     return r
 
 if init_file is None:
-    temp_variant = hoomd.variant.linear_interp([(0, 2.0), (therm_steps,0.2), (timeSteps, 0.01)],zero=0)
+    temp_variant = hoomd.variant.linear_interp([(0, 2.0), (therm_steps, 0.2), (timeSteps, 0.01)], zero=0)
     if os.path.isfile(filename + '_restart.gsd'):
         system = hoomd.init.read_gsd(filename = filename + '_restart.gsd')
     else:
