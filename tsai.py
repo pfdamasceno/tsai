@@ -56,6 +56,7 @@ filename = "ZnSc_QC"
 init_file = None
 restart_period = 1e5
 dump_period = 1e4
+therm_steps = 5e6
 
 # OPP defined as in doi: 10.1103/PhysRevB.85.092102
 def OPP(r, rmin, rmax, c1, c2, eta1, eta2, k, phi):
@@ -79,6 +80,7 @@ def determineRange(max_num_extrema, d):
     return r
 
 if init_file is None:
+    temp_variant = hoomd.variant.linear_interp([(0, 2.0), (therm_steps,0.2), (timeSteps, 0.01)],zero=0)
     if os.path.isfile(filename + '_restart.gsd'):
         system = hoomd.init.read_gsd(filename = filename + '_restart.gsd')
     else:
@@ -105,6 +107,7 @@ if init_file is None:
 
         system = hoomd.init.read_snapshot(snapshot)
 else:
+    temp_variant = hoomd.variant.linear_interp([(0, 0.01), (timeSteps-therm_steps, 0.2), (timeSteps, 2.0)],zero=0)
     # Initialize the system from the input file
     system = hoomd.init.read_gsd(filename = init_file)
 
@@ -130,9 +133,9 @@ pos = deprecated.dump.pos(filename = 'output/' + filename+'.pos', period = dump_
 gsd = hoomd.dump.gsd(filename = 'output/' + filename+'.gsd', group = hoomd.group.all(), period = dump_period)
 # 4. set up the log file
 logger = hoomd.analyze.log(filename = 'output/' + filename + ".log", period = int(dump_period/10),
-quantities = ['time','potential_energy','pressure','temperature'])
+quantities = ['step','time','potential_energy','pressure','temperature'])
 
 # Integrate at constant temperature
-nvt = md.integrate.nvt(group = hoomd.group.all(), tau = 1.0, kT=hoomd.variant.linear_interp([(0, 2.0), (timeSteps, 0.01)]))
+nvt = md.integrate.nvt(group = hoomd.group.all(), tau = 1.0, kT=temp_variant)
 md.integrate.mode_standard(dt = 0.005)
 hoomd.run(timeSteps + 1)
