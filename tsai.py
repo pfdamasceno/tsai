@@ -13,14 +13,14 @@ from hoomd import deprecated
 
 hoomd.context.initialize()
 
-Sc_N = 400
+Sc_N = 120
 ## number of Zn atoms is 6*Sc_N
 Zn_N = 6*Sc_N
 ## total number of atoms
 tot_N = Sc_N + Zn_N
 
 ## number density
-number_density = 0.03
+number_density = 0.01
 
 ## Parameters acquired manually from doi:10.1038/nmat2044
 ## Zn Zn params
@@ -54,9 +54,9 @@ ScSc_d = dict(c1   = 70.907,
 filename = "ZnSc_QC"
 # init_file = "input/Zn6Sc_2x2x2.gsd"
 init_file = None
-timeSteps = 10e6
+timeSteps = 50e6
 restart_period = 1e5
-dump_period = 1e4
+dump_period = 1e5
 therm_steps = 1e6
 
 # OPP defined as in doi: 10.1103/PhysRevB.85.092102
@@ -68,20 +68,23 @@ def OPP(r, rmin, rmax, c1, c2, eta1, eta2, k, phi):
     return (V, F)
 
 # Determine the potential range by searching for extrema
-def determineRange(max_num_extrema, d):
+def determineRange(max_num_extrema, c1, c2, eta1, eta2, k, phi):
+    # these are dummy variables
+    rmin = 1.0
+    rmax = 1.0
     r = 2.0
     extrema_num = 0
-    force1 = OPP(r, d['c1'], d['c2'], d['eta1'], d['eta2'], d['k'], d['phi'])[1]
+    force1 = OPP(r, rmin, rmax, c1, c2, eta1, eta2, k, phi)[1]
     while (extrema_num < max_num_extrema and r < 8.0):
         r += 1e-5
-        force2 = OPP(r, d['c1'], d['c2'], d['eta1'], d['eta2'], d['k'], d['phi'])[1]
+        force2 = OPP(r, rmin, rmax, c1, c2, eta1, eta2, k, phi)[1]
         if (force1 * force2 < 0.0):
             extrema_num += 1
         force1 = force2
     return r
 
 if init_file is None:
-    temp_variant = hoomd.variant.linear_interp([(0, 2.0), (therm_steps, 0.2), (timeSteps, 0.01)], zero=0)
+    protocol = [(0, 2.0), (therm_steps, 0.2), (timeSteps, 0.01)]
     if os.path.isfile(filename + '_restart.gsd'):
         system = hoomd.init.read_gsd(filename = filename + '_restart.gsd')
     else:
@@ -108,7 +111,7 @@ if init_file is None:
 
         system = hoomd.init.read_snapshot(snapshot)
 else:
-    temp_variant = hoomd.variant.linear_interp([(0, 0.01), (timeSteps-therm_steps, 0.2), (timeSteps, 2.0)],zero=0)
+    protocol = [(0, 0.01), (timeSteps-therm_steps, 0.2), (timeSteps, 2.0)]
     # Initialize the system from the input file
     system = hoomd.init.read_gsd(filename = init_file)
 
@@ -117,9 +120,9 @@ nl = md.nlist.cell()
 table = md.pair.table(width = 1000, nlist = nl)
 
 # find cutoff for each potential
-ZnZn_rcut = 8. #determineRange(6, **ZnZn_d)
-ZnSc_rcut = 8. #determineRange(5, **ZnSc_d)
-ScSc_rcut = 8. #determineRange(4, **ScSc_d)
+ZnZn_rcut = determineRange(6, **ZnZn_d)
+ZnSc_rcut = determineRange(5, **ZnSc_d)
+ScSc_rcut = determineRange(4, **ScSc_d)
 
 table.pair_coeff.set('Zn', 'Zn', func = OPP, rmin = ZnZn_rmin, rmax = ZnZn_rcut, coeff = ZnZn_d)
 table.pair_coeff.set('Zn', 'Sc', func = OPP, rmin = ZnSc_rmin, rmax = ZnSc_rcut, coeff = ZnSc_d)
@@ -134,9 +137,9 @@ pos = deprecated.dump.pos(filename = 'output/' + filename+'.pos', period = dump_
 gsd = hoomd.dump.gsd(filename = 'output/' + filename+'.gsd', group = hoomd.group.all(), period = dump_period)
 # 4. set up the log file
 logger = hoomd.analyze.log(filename = 'output/' + filename + ".log", period = int(dump_period/10),
-quantities = ['step','time','potential_energy','pressure','temperature'])
+quantities = ['time','potential_energy','pressure','temperature'])
 
 # Integrate at constant temperature
-nvt = md.integrate.nvt(group = hoomd.group.all(), tau = 1.0, kT=temp_variant)
+nvt = md.integrate.nvt(group = hoomd.group.all(), tau = 1.0, kT=hoomd.variant.linear_interp(protocol, zero=0))
 md.integrate.mode_standard(dt = 0.005)
 hoomd.run(timeSteps + 1)
