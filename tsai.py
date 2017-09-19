@@ -52,8 +52,8 @@ ScSc_d = dict(c1   = 70.907,
 
 
 filename = "ZnSc_QC"
-# init_file = "input/Zn6Sc_2x2x2.gsd"
-init_file = None
+init_file = "input/Zn6Sc.gsd"
+# init_file = None
 timeSteps = 50e6
 restart_period = 1e5
 dump_period = 1e5
