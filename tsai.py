@@ -54,7 +54,7 @@ ScSc_d = dict(c1   = 70.907,
 filename = "ZnSc_QC"
 # init_file = "input/Zn6Sc_2x2x2.gsd"
 init_file = None
-timeSteps = 10e6
+timeSteps = 100e6
 restart_period = 1e5
 dump_period = 1e4
 therm_steps = 1e6
@@ -68,13 +68,16 @@ def OPP(r, rmin, rmax, c1, c2, eta1, eta2, k, phi):
     return (V, F)
 
 # Determine the potential range by searching for extrema
-def determineRange(max_num_extrema, d):
+def determineRange(max_num_extrema, c1, c2, eta1, eta2, k, phi):
+    # these are dummy variables
+    rmin = 1.0
+    rmax = 1.0
     r = 2.0
     extrema_num = 0
-    force1 = OPP(r, d['c1'], d['c2'], d['eta1'], d['eta2'], d['k'], d['phi'])[1]
+    force1 = OPP(r, rmin, rmax, c1, c2, eta1, eta2, k, phi)[1]
     while (extrema_num < max_num_extrema and r < 8.0):
         r += 1e-5
-        force2 = OPP(r, d['c1'], d['c2'], d['eta1'], d['eta2'], d['k'], d['phi'])[1]
+        force2 = OPP(r, rmin, rmax, c1, c2, eta1, eta2, k, phi)[1]
         if (force1 * force2 < 0.0):
             extrema_num += 1
         force1 = force2
@@ -117,9 +120,9 @@ nl = md.nlist.cell()
 table = md.pair.table(width = 1000, nlist = nl)
 
 # find cutoff for each potential
-ZnZn_rcut = 8. #determineRange(6, **ZnZn_d)
-ZnSc_rcut = 8. #determineRange(5, **ZnSc_d)
-ScSc_rcut = 8. #determineRange(4, **ScSc_d)
+ZnZn_rcut = determineRange(6, **ZnZn_d)
+ZnSc_rcut = determineRange(5, **ZnSc_d)
+ScSc_rcut = determineRange(4, **ScSc_d)
 
 table.pair_coeff.set('Zn', 'Zn', func = OPP, rmin = ZnZn_rmin, rmax = ZnZn_rcut, coeff = ZnZn_d)
 table.pair_coeff.set('Zn', 'Sc', func = OPP, rmin = ZnSc_rmin, rmax = ZnSc_rcut, coeff = ZnSc_d)
