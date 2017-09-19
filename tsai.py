@@ -130,7 +130,7 @@ pos = deprecated.dump.pos(filename = 'output/' + filename+'.pos', period = dump_
 gsd = hoomd.dump.gsd(filename = 'output/' + filename+'.gsd', group = hoomd.group.all(), period = dump_period)
 # 4. set up the log file
 logger = hoomd.analyze.log(filename = 'output/' + filename + ".log", period = int(dump_period/10),
-quantities = ['time','potential_energy','pressure'])
+quantities = ['time','potential_energy','pressure','temperature'])
 
 # Integrate at constant temperature
 nvt = md.integrate.nvt(group = hoomd.group.all(), tau = 1.0, kT=hoomd.variant.linear_interp([(0, 2.0), (timeSteps, 0.01)]))
