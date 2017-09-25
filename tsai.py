@@ -13,12 +13,12 @@ from hoomd import deprecated
 
 hoomd.context.initialize()
 
+## Parameters if not reading input file
 Sc_N = 120
 ## number of Zn atoms is 6*Sc_N
 Zn_N = 6*Sc_N
 ## total number of atoms
 tot_N = Sc_N + Zn_N
-
 ## number density
 number_density = 0.01
 
@@ -52,10 +52,10 @@ ScSc_d = dict(c1   = 70.907,
 
 
 filename = "ZnSc_QC"
-init_file = "input/Zn6Sc.gsd"
+init_file = "input/Zn6Sc_retweaked_2x2x2.gsd"
 # init_file = None
-timeSteps = 50e6
-restart_period = 1e5
+timeSteps = 100e6
+restart_period = 1e6
 dump_period = 1e5
 therm_steps = 1e6
 
@@ -111,7 +111,7 @@ if init_file is None:
 
         system = hoomd.init.read_snapshot(snapshot)
 else:
-    protocol = [(0, 0.01), (timeSteps-therm_steps, 0.2), (timeSteps, 2.0)]
+    protocol = [(0, 1.0), (therm_steps, 0.2), (timeSteps, 0.01)]
     # Initialize the system from the input file
     system = hoomd.init.read_gsd(filename = init_file)
 
@@ -124,9 +124,9 @@ ZnZn_rcut = determineRange(6, **ZnZn_d)
 ZnSc_rcut = determineRange(5, **ZnSc_d)
 ScSc_rcut = determineRange(4, **ScSc_d)
 
-table.pair_coeff.set('Zn', 'Zn', func = OPP, rmin = ZnZn_rmin, rmax = ZnZn_rcut, coeff = ZnZn_d)
-table.pair_coeff.set('Zn', 'Sc', func = OPP, rmin = ZnSc_rmin, rmax = ZnSc_rcut, coeff = ZnSc_d)
-table.pair_coeff.set('Sc', 'Sc', func = OPP, rmin = ScSc_rmin, rmax = ScSc_rcut, coeff = ScSc_d)
+table.pair_coeff.set(zn, zn, func = OPP, rmin = ZnZn_rmin, rmax = ZnZn_rcut, coeff = ZnZn_d)
+table.pair_coeff.set(sc, sc, func = OPP, rmin = ScSc_rmin, rmax = ScSc_rcut, coeff = ScSc_d)
+table.pair_coeff.set(zn, sc, func = OPP, rmin = ZnSc_rmin, rmax = ZnSc_rcut, coeff = ZnSc_d)
 
 # Start logging
 # 1. set up the gsd restart file
