@@ -13,12 +13,12 @@ from hoomd import deprecated
 
 hoomd.context.initialize()
 
+## Parameters if not reading input file
 Sc_N = 120
 ## number of Zn atoms is 6*Sc_N
 Zn_N = 6*Sc_N
 ## total number of atoms
 tot_N = Sc_N + Zn_N
-
 ## number density
 number_density = 0.01
 
@@ -52,11 +52,11 @@ ScSc_d = dict(c1   = 70.907,
 
 
 filename = "ZnSc_QC"
-init_file = "input/Layers_tweaked_2.gsd"
+init_file = "input/Zn6Sc_retweaked_2x2x2.gsd"
 # init_file = None
-timeSteps = 1e6
-restart_period = 1e5
-dump_period = 1e2
+timeSteps = 100e6
+restart_period = 1e6
+dump_period = 1e5
 therm_steps = 1e6
 
 # OPP defined as in doi: 10.1103/PhysRevB.85.092102
@@ -111,8 +111,7 @@ if init_file is None:
 
         system = hoomd.init.read_snapshot(snapshot)
 else:
-    protocol = [(0, 0.01), (timeSteps, 0.01)]
-#    protocol = [(0, 0.01), (timeSteps-therm_steps, 0.2), (timeSteps, 2.0)]
+    protocol = [(0, 1.0), (therm_steps, 0.2), (timeSteps, 0.01)]
     # Initialize the system from the input file
     system = hoomd.init.read_gsd(filename = init_file)
 
@@ -125,21 +124,9 @@ ZnZn_rcut = determineRange(6, **ZnZn_d)
 ZnSc_rcut = determineRange(5, **ZnSc_d)
 ScSc_rcut = determineRange(4, **ScSc_d)
 
-Scs = ['Sc_Icos1','Sc_Icos2']
-Zns = ['Zn_Tet1', 'Zn_Dodec1','Zn_Icdo1','Zn_Triac1','Zn_Midp1','Zn_Tet2','Zn_Dodec2','Zn_Icdo2','Zn_Triac2','Zn_Midp2']
-
-for i,znx in enumerate(Zns):
-    for j,zny in enumerate(Zns[:i+1]):
-        table.pair_coeff.set(znx, zny, func = OPP, rmin = ZnZn_rmin, rmax = ZnZn_rcut, coeff = ZnZn_d)
-
-for i,znx in enumerate(Scs):
-    for j,zny in enumerate(Scs[:i+1]):
-        table.pair_coeff.set(znx, zny, func = OPP, rmin = ScSc_rmin, rmax = ScSc_rcut, coeff = ScSc_d)
-
-for i,znx in enumerate(Scs):
-    for j,zny in enumerate(Zns):
-        table.pair_coeff.set(znx, zny, func = OPP, rmin = ZnSc_rmin, rmax = ZnSc_rcut, coeff = ZnSc_d)
-
+table.pair_coeff.set(zn, zn, func = OPP, rmin = ZnZn_rmin, rmax = ZnZn_rcut, coeff = ZnZn_d)
+table.pair_coeff.set(sc, sc, func = OPP, rmin = ScSc_rmin, rmax = ScSc_rcut, coeff = ScSc_d)
+table.pair_coeff.set(zn, sc, func = OPP, rmin = ZnSc_rmin, rmax = ZnSc_rcut, coeff = ZnSc_d)
 
 # Start logging
 # 1. set up the gsd restart file

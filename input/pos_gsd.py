@@ -9,8 +9,8 @@ from glotzformats.reader import GSDHoomdFileReader
 import hoomd
 hoomd.context.initialize()
 
-f_in = "Layers_tweaked_2"
-f_out = "Layers_tweaked_2"
+f_in = "Zn6Sc_retweaked_2x2x2"
+f_out = "Zn6Sc_retweaked_2x2x2"
 
 reader = PosFileReader()
 gsd_reader = GSDHoomdFileReader()
