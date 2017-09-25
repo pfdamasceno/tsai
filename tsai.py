@@ -124,9 +124,9 @@ ZnZn_rcut = determineRange(6, **ZnZn_d)
 ZnSc_rcut = determineRange(5, **ZnSc_d)
 ScSc_rcut = determineRange(4, **ScSc_d)
 
-table.pair_coeff.set(zn, zn, func = OPP, rmin = ZnZn_rmin, rmax = ZnZn_rcut, coeff = ZnZn_d)
-table.pair_coeff.set(sc, sc, func = OPP, rmin = ScSc_rmin, rmax = ScSc_rcut, coeff = ScSc_d)
-table.pair_coeff.set(zn, sc, func = OPP, rmin = ZnSc_rmin, rmax = ZnSc_rcut, coeff = ZnSc_d)
+table.pair_coeff.set('Zn', 'Zn', func = OPP, rmin = ZnZn_rmin, rmax = ZnZn_rcut, coeff = ZnZn_d)
+table.pair_coeff.set('Sc', 'Sc', func = OPP, rmin = ScSc_rmin, rmax = ScSc_rcut, coeff = ScSc_d)
+table.pair_coeff.set('Zn', 'Sc', func = OPP, rmin = ZnSc_rmin, rmax = ZnSc_rcut, coeff = ZnSc_d)
 
 # Start logging
 # 1. set up the gsd restart file
